@@ -1,0 +1,187 @@
+multi-segment executable file template.
+
+data segment
+; add your data here!
+MAP dw "/======|..............................||......|======/$"   ;MAP[x][y]=MAP[2(x+(y8))]
+y dw 0
+xy dw 0
+var dw 0
+PHP dw 6
+EHP dw 6
+PX dw 4
+PY dw 4
+PXY dw 28
+EX dw 2
+EY dw 2
+varh dw 0
+XB dw 0
+XA dw 0
+ends
+
+stack segment
+dw   128  dup(0)
+ends
+
+code segment
+start:
+; set segment registers:
+mov ax, data
+mov ds, ax
+mov es, ax
+
+; add your code here
+lea bx, MAP
+mov cx,0
+call turn
+
+
+
+; wait for any key....
+mov ah, 1
+int 21h
+
+mov ax, 4c00h ; exit to operating system.
+int 21h
+turn:
+mov y,0
+mov xy,0
+mov bx,MAP
+mov ax,0
+mov cx,0
+mov di,0
+call printmap
+mov al, 08h
+int 21h
+mov varh,ax
+cmp al,'a'
+je moveleft
+cmp al,'d'
+je moveright
+cmp al,'w'
+je moveup
+cmp al,'d'
+je movedown
+mov y,0
+mov xy,0
+mov bx,MAP
+mov ax,0
+mov cx,0
+mov di,0
+call printmap
+jmp turn
+moveleft:
+dec PX
+mov XA,ax
+mov AX,9
+mul PY
+mov PXY,ax
+mov ax,PX
+add pxy,ax
+mov ax,XA
+mov y,0
+mov xy,0
+mov bx,0
+mov ax,MAP
+mov cx,0
+mov di,0
+call printmap
+jmp turn
+moveright:
+inc PX
+mov XA,ax
+mov AX,9
+mul PY
+mov PXY,ax
+mov ax,PX
+add pxy,ax
+mov ax,XA
+mov y,0
+mov xy,0
+mov bx,MAP
+mov ax,0
+mov cx,0
+mov di,0
+call printmap
+jmp turn
+movedown:
+inc Py
+mov XA,ax
+mov AX,9
+mul PY
+mov PXY,ax
+mov ax,PX
+add pxy,ax
+mov ax,XA 
+mov y,0
+mov xy,0
+mov bx,0
+mov ax,0
+mov cx,0
+mov di,0
+call printmap
+jmp turn
+moveup:
+dec Py
+mov XA,ax
+mov AX,9
+mul PY
+mov PXY,ax
+mov ax,PX
+add pxy,ax
+mov ax,XA
+mov y,0
+mov xy,0
+mov bx,0
+mov ax,0
+mov cx,0
+mov di,0
+call printmap
+jmp turn
+
+
+printmap:
+cmp cx,8
+je nextline
+mov di,y
+mov var,ax
+mov ax,8
+mul di
+mov xy,cx
+add xy,ax
+mov ax,2
+mul xy
+mov bx,xy
+mov ax,var
+cmp bx,PXY
+je playerprint
+
+mov dx,[bx]
+mov ah, 02h
+int 21h
+inc cx
+inc bx
+jmp printmap        ; output string at ds:dx
+playerprint:
+mov dx,'@'
+mov ah, 02h
+int 21h
+inc cx
+inc bx
+jmp printmap
+
+nextline:
+cmp y,7
+je nonext
+inc y
+mov cx,0
+mov dx,0ah
+int 21h
+mov dx,0dh
+int 21h
+jmp printmap
+
+nonext:
+ret
+ends
+
+end start ; set entry point and stop the assembler.
